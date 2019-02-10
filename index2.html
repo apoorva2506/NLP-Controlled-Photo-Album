@@ -1,0 +1,217 @@
+
+<html>
+
+<head>
+	<title>Cloud Computing Assignment-3</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="lib/axios/dist/axios.standalone.js"></script>
+	<script type="text/javascript" src="lib/CryptoJS/rollups/hmac-sha256.js"></script>
+	<script type="text/javascript" src="lib/CryptoJS/rollups/sha256.js"></script>
+	<script type="text/javascript" src="lib/CryptoJS/components/hmac.js"></script>
+	<script type="text/javascript" src="lib/CryptoJS/components/enc-base64.js"></script>
+	<script type="text/javascript" src="lib/url-template/url-template.js"></script>
+	<script type="text/javascript" src="lib/apiGatewayCore/sigV4Client.js"></script>
+	<script type="text/javascript" src="lib/apiGatewayCore/apiGatewayClient.js"></script>
+	<script type="text/javascript" src="lib/apiGatewayCore/simpleHttpClient.js"></script>
+	<script type="text/javascript" src="lib/apiGatewayCore/utils.js"></script>
+	<script type="text/javascript" src="apigClient.js"></script>
+<script src="config.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Shadows+Into+Light" rel="stylesheet">
+</head>
+
+<body>
+
+<div style="background-color:white">
+	<div class="courses" style="padding:2em 5em 1em 4em;" >
+		<a name="courses"></a>
+		<center>
+			<p id="big" style="color:#0066ff; font-size:5vmax;">Photo Gallery</p>
+		</center>
+	</div>
+</div>
+
+
+<div class="paths" style="background-color:white; padding:0% 3% 0% 3%;">
+	<center>
+		<h3 id="medium" style="font-size:3em;">Search for a picture</h3>
+	</center>
+	<p id="small" style="font-size:5em;">
+	</p>
+</div>
+
+
+<div class="container" style="background-color:white; padding:0% 3% 0% 3%;">
+	<h3 id="medium" style="font-size:3em;">
+
+		<h4>Enter picture name:
+		<input type="text" id="searchKey" name="caption"></h4>
+		<i id='micro' class="fa fa-microphone"></i>
+		<h4>
+			<input type = "submit" onClick="searchImage()" />
+		</h4>
+
+		<div id="displayImages" class="container" style="padding:2% 0%;">
+		</div>
+
+	</h3>
+</div>
+<script>
+function searchImage() {
+	var apigClient = apigClientFactory.newClient({
+                invokeUrl: config.invokeUrl, // REQUIRED
+                apiKey: config.apiKey,// REQUIRED
+                  accessKey: config.accessKey,
+                  secretKey: config.secretKey,
+                region: config.region // REQUIRED
+              });
+	var text= document.getElementById("searchKey").value;
+              var params = {
+                "q" : text
+              };
+              console.log(params);
+
+            var additionalParams={};
+            var body={};
+
+            console.log(body);
+
+            apigClient.searchGet(params, body, additionalParams)
+                .then(function(result){
+
+                  // console.log(result.data)
+                  // var2 = result.data;
+                  console.log(result);
+                  console.log(result.data.results.length)
+
+                  // sendMessage(var2);
+
+                  var i;
+          				if(result["data"]["results"].length == 0){
+          				displayImages.innerHTML = '<div style="color:red; font-size:26px; font-weight:bold; font-style: italic;"  align="center"> Sorry! There are no images with the above content in your gallery</div>';
+          				}
+          				else{
+          				for (i = 0; i < result["data"]["results"].length; i++) {
+                    console.log("inside for");
+                    var img1 = new Image();
+          					img1.width = "300";
+          					img1.height = "300";
+                    labels = result["data"]["results"][i]["labels"]
+                         console.log("labels yeh")
+                         console.log(labels);
+                         url = result["data"]["results"][i]["url"]
+                         console.log(url);
+
+                         console.log("url hai yeh")
+          					var temp = result["data"]["results"][i];
+          					console.log(temp);
+          					img1.src =  url;
+                    // // img.src = "http://publicaccessbucket1.s3-website-us-east-1.amazonaws.com"+temp;
+                    var div_img = document.getElementById("displayImages");
+                    div_img.appendChild(img1);
+
+          				}
+        //
+          				}
+          				// console.log(result)
+          			}).catch( function(result){
+          				//This is where you would put an error callback
+          				console.log("Fails to send searchGet request");
+          			});
+
+
+}
+</script>
+
+<div class="paths" style="background-color:white; padding:1% 3% 0% 3%;">
+<center><h3 id="medium" style="font-size:3em;">Upload a picture</h3></center>
+<p id="small" style="font-size:5em;">
+</p>
+</div>
+
+
+
+<div class="container" style="background-color:white; padding:1% 3% 0% 3%;">
+	<h3 id="medium" style="font-size:3em;">
+		<!-- <input class="upload_input" type="file" name="pic" id="file" accept="image/*"> -->
+		<h4><input id = "fileupload" type = "file" name="pic" id="file" accept="image/*"></h4>
+		<h4><input type = "submit" onClick="uploadPic()" /></h4>
+	</h3>
+</div>
+<script>
+function uploadPic() {
+	var file = document.getElementById('fileupload').files[0];
+            var filename = file.name;
+            var type = file.type
+            var params = {
+              'filename' : filename,
+              'Content-Type':'text/plain',
+              'Accept':'img/png'
+
+            }
+            var additionalParams = {
+                headers: {
+                "Content-Type": "text/plain",
+               }
+            }
+            console.log(type);
+
+            console.log(filename);
+            console.log("invokeurl")
+            var invokeUrl_str="https://fl8inowho4.execute-api.us-east-1.amazonaws.com/aakhriDinwala/upload/" + filename;
+              console.log("https://fl8inowho4.execute-api.us-east-1.amazonaws.com/aakhriDinwala/upload/" + filename);
+            var apigClient = apigClientFactory.newClient({
+              invokeUrl:invokeUrl_str,
+              apiKey: '',// REQUIRED
+              region: 'us-east-1' // REQUIRED
+            }
+            );
+
+            console.log(file);
+            // var body = file.replace(/^data:image\/[a-z]+;base64,/, "");
+
+            var body;
+            var reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.addEventListener("load", function() {
+              console.log("inside load");
+              ImageURL = reader.result;
+              console.log("ImageURL");
+              console.log(ImageURL);
+
+
+
+              var block = ImageURL.split(";");
+              console.log("block yeh");
+              console.log(block);
+
+              body = block[1].split(",")[1];
+              // body = atob(splittedBody);
+              // console.log("splittedBody");
+              // console.log(splittedBody);
+              console.log("body")
+              console.log(body);
+
+              apigClient.uploadPut(params, body, additionalParams)
+                  .then(function(result){
+
+                    console.log("Success!")
+
+                  }).catch( function(result){
+                    // Add error callback code here.
+
+                    console.log("error");
+                    console.log(result);
+                  });
+            })
+}
+</script>
+
+
+
+
+
+</body>
+</html>
